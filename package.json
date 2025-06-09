@@ -8,8 +8,13 @@
     "build": "vite build",
     "preview": "vite preview"
   },
-  "devDependencies": {
-    "sass": "^1.69.5",
+  "dependencies": {
     "vite": "^5.0.0"
+  },
+  "devDependencies": {
+    "sass": "^1.69.5"
+  },
+  "engines": {
+    "node": "18.x"
   }
 } 
