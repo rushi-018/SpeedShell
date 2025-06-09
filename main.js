@@ -55,6 +55,7 @@ function addPrompt(input = '') {
     currentInput = input;
     terminalContent.scrollTop = terminalContent.scrollHeight;
     if (isMobile()) {
+        mobileInput.value = input;
         setTimeout(() => mobileInput.focus(), 0);
     }
 }
@@ -288,6 +289,9 @@ function updatePrompt() {
     if (!currentLine) return;
     const userInput = currentLine.querySelector('.user-input');
     if (userInput) userInput.textContent = currentInput;
+    if (isMobile()) {
+        mobileInput.value = currentInput;
+    }
 }
 
 // Initial load
