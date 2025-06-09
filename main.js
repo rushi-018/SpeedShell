@@ -42,6 +42,52 @@ function isMobile() {
     return /Android|iPhone|iPad|iPod|Opera Mini|IEMobile|WPDesktop/i.test(navigator.userAgent);
 }
 
+// Always focus the hidden input on prompt creation and on terminal click/tap
+function focusInput() {
+    setTimeout(() => mobileInput.focus(), 0);
+}
+terminalContent.addEventListener('click', focusInput);
+
+// Handle input event for all typing (desktop and mobile)
+mobileInput.addEventListener('input', (e) => {
+    if (!currentLine) return;
+    currentInput = e.target.value;
+    updatePrompt();
+});
+
+// Handle Enter key for all typing (desktop and mobile)
+mobileInput.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') {
+        const input = currentInput;
+        removePrompt();
+        if (mode === 'command') {
+            addOutput(`Dev@Devtype.rushiraj.top:~$ ${input}`);
+            handleCommand(input);
+        } else if (mode === 'typing') {
+            handleTyping(input);
+        } else if (mode === 'yn') {
+            handleYN(input);
+        }
+        currentInput = '';
+        mobileInput.value = '';
+        e.preventDefault();
+    } else if (e.key === 'Backspace') {
+        // Handled by input event, but keep for completeness
+        setTimeout(() => {
+            currentInput = mobileInput.value;
+            updatePrompt();
+        }, 0);
+    } else if (e.key.length === 1) {
+        if (mode === 'typing' && !firstKeyTime) {
+            firstKeyTime = Date.now();
+        }
+        setTimeout(() => {
+            currentInput = mobileInput.value;
+            updatePrompt();
+        }, 0);
+    }
+});
+
 function addPrompt(input = '') {
     removePrompt();
     const commandLine = document.createElement('div');
@@ -54,10 +100,8 @@ function addPrompt(input = '') {
     currentLine = commandLine;
     currentInput = input;
     terminalContent.scrollTop = terminalContent.scrollHeight;
-    if (isMobile()) {
-        mobileInput.value = input;
-        setTimeout(() => mobileInput.focus(), 0);
-    }
+    mobileInput.value = input;
+    focusInput();
 }
 
 function removePrompt() {
@@ -216,82 +260,11 @@ function handleYN(input) {
     }
 }
 
-// Unified key handler for desktop
-function handleKey(e) {
-    if (!currentLine) return;
-    if (e.key === 'Enter') {
-        const input = currentInput;
-        removePrompt();
-        if (mode === 'command') {
-            addOutput(`Dev@Devtype.rushiraj.top:~$ ${input}`);
-            handleCommand(input);
-        } else if (mode === 'typing') {
-            handleTyping(input);
-        } else if (mode === 'yn') {
-            handleYN(input);
-        }
-        currentInput = '';
-        e.preventDefault();
-    } else if (e.key === 'Backspace') {
-        if (currentInput.length > 0) {
-            currentInput = currentInput.slice(0, -1);
-            updatePrompt();
-        }
-        e.preventDefault();
-    } else if (e.key.length === 1) {
-        if (mode === 'typing' && !firstKeyTime) {
-            firstKeyTime = Date.now();
-        }
-        currentInput += e.key;
-        updatePrompt();
-        e.preventDefault();
-    }
-}
-
-// For mobile: handle input event (entire value)
-function handleMobileInput(e) {
-    if (!currentLine) return;
-    currentInput = e.target.value;
-    updatePrompt();
-}
-
-// For mobile: handle Enter key
-function handleMobileKeydown(e) {
-    if (e.key === 'Enter') {
-        const input = currentInput;
-        removePrompt();
-        if (mode === 'command') {
-            addOutput(`Dev@Devtype.rushiraj.top:~$ ${input}`);
-            handleCommand(input);
-        } else if (mode === 'typing') {
-            handleTyping(input);
-        } else if (mode === 'yn') {
-            handleYN(input);
-        }
-        currentInput = '';
-        mobileInput.value = '';
-        e.preventDefault();
-    }
-}
-
-// Attach the correct listeners
-if (isMobile()) {
-    terminalContent.addEventListener('click', () => {
-        mobileInput.focus();
-    });
-    mobileInput.addEventListener('input', handleMobileInput);
-    mobileInput.addEventListener('keydown', handleMobileKeydown);
-} else {
-    document.addEventListener('keydown', handleKey);
-}
-
 function updatePrompt() {
     if (!currentLine) return;
     const userInput = currentLine.querySelector('.user-input');
     if (userInput) userInput.textContent = currentInput;
-    if (isMobile()) {
-        mobileInput.value = currentInput;
-    }
+    mobileInput.value = currentInput;
 }
 
 // Initial load
