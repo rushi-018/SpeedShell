@@ -9,6 +9,7 @@ const sampleTexts = [
 
 // DOM Elements
 const terminalContent = document.getElementById('terminal-content');
+const mobileInput = document.getElementById('mobile-input');
 
 // Game state
 let isPlaying = false;
@@ -208,7 +209,13 @@ function handleYN(input) {
     }
 }
 
-document.addEventListener('keydown', (e) => {
+// Focus hidden input on terminal tap (mobile support)
+terminalContent.addEventListener('click', () => {
+    mobileInput.focus();
+});
+
+// Unified key handler for both desktop and mobile
+function handleKey(e) {
     if (!currentLine) return;
     if (e.key === 'Enter') {
         const input = currentInput;
@@ -222,20 +229,26 @@ document.addEventListener('keydown', (e) => {
             handleYN(input);
         }
         currentInput = '';
+        e.preventDefault();
     } else if (e.key === 'Backspace') {
         if (currentInput.length > 0) {
             currentInput = currentInput.slice(0, -1);
             updatePrompt();
         }
+        e.preventDefault();
     } else if (e.key.length === 1) {
-        // Start timer on first key in typing mode
         if (mode === 'typing' && !firstKeyTime) {
             firstKeyTime = Date.now();
         }
         currentInput += e.key;
         updatePrompt();
+        e.preventDefault();
     }
-});
+}
+
+// Listen for keydown on both document (desktop) and mobile input
+mobileInput.addEventListener('keydown', handleKey);
+document.addEventListener('keydown', handleKey);
 
 function updatePrompt() {
     if (!currentLine) return;
